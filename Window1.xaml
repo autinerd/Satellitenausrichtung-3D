@@ -1,0 +1,77 @@
+﻿<Window x:Class="PhysikLaborSatellit.Window1"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:c="clr-namespace:PhysikLaborSatellit"
+		Title="howto_3D_smooth_sphere"
+    Height="500" Width="750"
+    Loaded="Window_Loaded"
+    KeyDown="Window_KeyDown" MouseWheel="Window_MouseWheel">
+	<Window.Resources>
+		<c:MyDataSource x:Key="Ods" />
+		<c:DoubleToPersistantStringConverter x:Key="Convert" />
+		<Style x:Key="TextBoxInError" TargetType="{x:Type TextBox}">
+			<Style.Triggers>
+				<Trigger Property="Validation.HasError" Value="true">
+					<Setter Property="ToolTip"
+              Value="{Binding RelativeSource={x:Static RelativeSource.Self},
+                              Path=(Validation.Errors)[0].ErrorContent}"/>
+					<Setter Property="Background" Value="#99FF0000"></Setter>
+				</Trigger>
+			</Style.Triggers>
+		</Style>
+	</Window.Resources>
+	<Grid>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="5*"/>
+			<ColumnDefinition/>
+		</Grid.ColumnDefinitions>
+		<Viewport3D Name="MainViewport" Focusable="True"/>
+		<StackPanel Grid.Column="1">
+			<Label Content="Längengrad:" Target="{Binding ElementName=longText}"></Label>
+			<TextBox x:Name="longText" Margin="5,0" Style="{StaticResource TextBoxInError}">
+				<TextBox.Text>
+					<Binding Path="Longitude" Source="{StaticResource Ods}" UpdateSourceTrigger="LostFocus" Converter="{StaticResource Convert}">
+						<Binding.ValidationRules>
+							 <c:LongitudeRule />
+						</Binding.ValidationRules>
+					</Binding>
+				</TextBox.Text>
+			</TextBox>
+			<RadioButton x:Name="longEast" Content="Ost" Margin="5,2,5,0" GroupName="Longitude" IsChecked="True" />
+			<RadioButton x:Name="longWest" Content="West" Margin="5,0" GroupName="Longitude"/>
+			<Label Content="Breitengrad:" Target="{Binding ElementName=latText}"></Label>
+			<TextBox x:Name="latText" Margin="5,0" Style="{StaticResource TextBoxInError}">
+				<TextBox.Text>
+					<Binding Path="Latitude" Source="{StaticResource Ods}" UpdateSourceTrigger="LostFocus" Converter="{StaticResource Convert}">
+						<Binding.ValidationRules>
+							<c:LatitudeRule />
+						</Binding.ValidationRules>
+					</Binding>
+				</TextBox.Text>
+			</TextBox>
+			<RadioButton x:Name="latNorth" Content="Nord" Margin="5,2,5,0" GroupName="Latitude" IsChecked="True" />
+			<RadioButton x:Name="latSouth" Content="Süd" Margin="5,0,5,10" GroupName="Latitude"/>
+			<Separator></Separator>
+			<Label Content="Längengrad (Satellit):" Target="{Binding ElementName=longSatText}"></Label>
+			<TextBox x:Name="longSatText" Margin="5,0" Style="{StaticResource TextBoxInError}">
+				<TextBox.Text>
+					<Binding Path="LongitudeSat" Source="{StaticResource Ods}" UpdateSourceTrigger="LostFocus" Converter="{StaticResource Convert}">
+						<Binding.ValidationRules>
+							<c:LongitudeRule />
+						</Binding.ValidationRules>
+					</Binding>
+				</TextBox.Text>
+			</TextBox>
+			<RadioButton x:Name="longSatEast" Content="Ost" Margin="5,2,5,0" GroupName="LongitudeSatellite" IsChecked="True" />
+			<RadioButton x:Name="longSatWest" Content="West" Margin="5,0" GroupName="LongitudeSatellite"/>
+			<Button Content="Berechnen" Margin="5,20,5,0" Click="Button_Click" />
+
+			<Label Content="Azimutwinkel:" />
+			<TextBox IsReadOnly="True"/>
+			<Label Content="Elevationswinkel:"/>
+			<TextBox IsReadOnly="True"/>
+			<Label Content="Deklinationswinkel:"/>
+			<TextBox IsReadOnly="True"/>
+		</StackPanel>
+	</Grid>
+</Window>
