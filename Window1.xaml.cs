@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
-
+using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 
 namespace PhysikLaborSatellit
@@ -14,6 +17,10 @@ namespace PhysikLaborSatellit
 	/// </summary>
 	public partial class Window1 : Window
 	{
+
+		[System.Runtime.InteropServices.DllImport("gdi32.dll")]
+		public static extern bool DeleteObject(IntPtr hObject);
+
 		public Window1() => InitializeComponent();
 
 		// The main object model group.
@@ -97,7 +104,7 @@ namespace PhysikLaborSatellit
 
 			// Make satellite cylinder
 			MeshGeometry3D mesh4 = new MeshGeometry3D();
-			Vector3D vector = SphericalCoordinatesToCartesic(1, DegToRad(longitudeSat), 0);
+			Vector3D vector = SphericalCoordinatesToCartesic(1,SatelliteAntennaCalculator.DegToRad(longitudeSat), 0);
 			AddSmoothCylinder(mesh4, new Point3D(vector.X, vector.Y, vector.Z),
 				Vector3D.Multiply(vector, 0.005), 0.005, 50);
 			SolidColorBrush brush4 = Brushes.DarkGray;
@@ -107,7 +114,7 @@ namespace PhysikLaborSatellit
 
 			// Make person cylinder
 			MeshGeometry3D mesh5 = new MeshGeometry3D();
-			vector = SphericalCoordinatesToCartesic(radius_earth, DegToRad(longitude), DegToRad(latitude));
+			vector = SphericalCoordinatesToCartesic(radius_earth, SatelliteAntennaCalculator.DegToRad(longitude), SatelliteAntennaCalculator.DegToRad(latitude));
 			AddSmoothCylinder(mesh5, new Point3D(vector.X, vector.Y, vector.Z),
 				Vector3D.Multiply(0.05, vector), 0.005, 50);
 			SolidColorBrush brush5 = Brushes.Red;
@@ -613,10 +620,6 @@ namespace PhysikLaborSatellit
 
 		private Vector3D SphericalCoordinatesToCartesic(double radius, double phi, double lambda) => new Vector3D(radius * Math.Cos(phi) * Math.Cos(lambda), radius * Math.Cos(phi) * Math.Sin(lambda), radius * Math.Sin(phi));
 
-		private double DegToRad(double deg) => deg * Math.PI / 180;
-
-		private double RadToDeg(double rad) => rad * 180 / Math.PI;
-
 		// Calculate button
 		private void Button_Click(object sender, RoutedEventArgs e)
 		{
@@ -628,9 +631,13 @@ namespace PhysikLaborSatellit
 
 			DefineModel(longitude, latitude, longitudeSat);
 			CameraPhi = 0;
-			CameraTheta = DegToRad(longitudeSat);
+			CameraTheta = SatelliteAntennaCalculator.DegToRad(longitudeSat);
 			PositionCamera();
 			MainViewport.Focus();
+
+			azimutText.Text = SatelliteAntennaCalculator.GetAzimutAngle(longitude, latitude, longitudeSat).ToString("#.##°");
+
+			elevationText.Text = SatelliteAntennaCalculator.GetElevationAngle(longitude, latitude, longitudeSat).ToString("#.##°");
 		}
 
 		// Zoom with the Mouse wheel
@@ -647,5 +654,8 @@ namespace PhysikLaborSatellit
 			}
 			PositionCamera();
 		}
+
+		// Keybord focus selects all text of textbox
+		private void TextBox_GotFocus(object sender, RoutedEventArgs e) => ((TextBox)sender).SelectAll();
 	}
 }

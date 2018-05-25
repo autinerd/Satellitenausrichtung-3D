@@ -28,7 +28,7 @@
 		<Viewport3D Name="MainViewport" Focusable="True"/>
 		<StackPanel Grid.Column="1">
 			<Label Content="Längengrad:" Target="{Binding ElementName=longText}"></Label>
-			<TextBox x:Name="longText" Margin="5,0" Style="{StaticResource TextBoxInError}">
+			<TextBox x:Name="longText" Margin="5,0" Style="{StaticResource TextBoxInError}" GotFocus="TextBox_GotFocus">
 				<TextBox.Text>
 					<Binding Path="Longitude" Source="{StaticResource Ods}" UpdateSourceTrigger="LostFocus" Converter="{StaticResource Convert}">
 						<Binding.ValidationRules>
@@ -40,7 +40,7 @@
 			<RadioButton x:Name="longEast" Content="Ost" Margin="5,2,5,0" GroupName="Longitude" IsChecked="True" />
 			<RadioButton x:Name="longWest" Content="West" Margin="5,0" GroupName="Longitude"/>
 			<Label Content="Breitengrad:" Target="{Binding ElementName=latText}"></Label>
-			<TextBox x:Name="latText" Margin="5,0" Style="{StaticResource TextBoxInError}">
+			<TextBox x:Name="latText" Margin="5,0" Style="{StaticResource TextBoxInError}" GotFocus="TextBox_GotFocus">
 				<TextBox.Text>
 					<Binding Path="Latitude" Source="{StaticResource Ods}" UpdateSourceTrigger="LostFocus" Converter="{StaticResource Convert}">
 						<Binding.ValidationRules>
@@ -53,7 +53,7 @@
 			<RadioButton x:Name="latSouth" Content="Süd" Margin="5,0,5,10" GroupName="Latitude"/>
 			<Separator></Separator>
 			<Label Content="Längengrad (Satellit):" Target="{Binding ElementName=longSatText}"></Label>
-			<TextBox x:Name="longSatText" Margin="5,0" Style="{StaticResource TextBoxInError}">
+			<TextBox x:Name="longSatText" Margin="5,0" Style="{StaticResource TextBoxInError}" GotFocus="TextBox_GotFocus">
 				<TextBox.Text>
 					<Binding Path="LongitudeSat" Source="{StaticResource Ods}" UpdateSourceTrigger="LostFocus" Converter="{StaticResource Convert}">
 						<Binding.ValidationRules>
@@ -67,11 +67,11 @@
 			<Button Content="Berechnen" Margin="5,20,5,0" Click="Button_Click" />
 
 			<Label Content="Azimutwinkel:" />
-			<TextBox IsReadOnly="True"/>
+			<TextBox x:Name="azimutText" IsReadOnly="True"/>
 			<Label Content="Elevationswinkel:"/>
-			<TextBox IsReadOnly="True"/>
+			<TextBox x:Name="elevationText" IsReadOnly="True"/>
 			<Label Content="Deklinationswinkel:"/>
-			<TextBox IsReadOnly="True"/>
+			<TextBox x:Name="declinationText" IsReadOnly="True"/>
 		</StackPanel>
 	</Grid>
 </Window>
