@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing.Imaging;
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
@@ -17,9 +14,6 @@ namespace PhysikLaborSatellit
 	/// </summary>
 	public partial class Window1 : Window
 	{
-
-		[System.Runtime.InteropServices.DllImport("gdi32.dll")]
-		public static extern bool DeleteObject(IntPtr hObject);
 
 		public Window1() => InitializeComponent();
 
@@ -96,17 +90,20 @@ namespace PhysikLaborSatellit
 			// Make earth
 			MeshGeometry3D mesh1 = new MeshGeometry3D();
 			AddSmoothSphere(mesh1, new Point3D(0, 0, 0), radius_earth, 180, 360);
+			ImageBrush imageBrush = new ImageBrush(new BitmapImage(new Uri("pack://application:,,,/world.jpg")));
 
 			SolidColorBrush brush1 = Brushes.Aqua;
 			DiffuseMaterial material1 = new DiffuseMaterial(brush1);
 			GeometryModel3D model1 = new GeometryModel3D(mesh1, material1);
+
 			MainModel3Dgroup.Children.Add(model1);
 
 			// Make satellite cylinder
 			MeshGeometry3D mesh4 = new MeshGeometry3D();
-			Vector3D vector = SphericalCoordinatesToCartesic(1,SatelliteAntennaCalculator.DegToRad(longitudeSat), 0);
+			Vector3D vector = SphericalCoordinatesToCartesic(1, SatelliteAntennaCalculator.DegToRad(longitudeSat), 0);
 			AddSmoothCylinder(mesh4, new Point3D(vector.X, vector.Y, vector.Z),
 				Vector3D.Multiply(vector, 0.005), 0.005, 50);
+			Vector3D sat_vector = vector;
 			SolidColorBrush brush4 = Brushes.DarkGray;
 			DiffuseMaterial material4 = new DiffuseMaterial(brush4);
 			GeometryModel3D model4 = new GeometryModel3D(mesh4, material4);
@@ -117,10 +114,20 @@ namespace PhysikLaborSatellit
 			vector = SphericalCoordinatesToCartesic(radius_earth, SatelliteAntennaCalculator.DegToRad(longitude), SatelliteAntennaCalculator.DegToRad(latitude));
 			AddSmoothCylinder(mesh5, new Point3D(vector.X, vector.Y, vector.Z),
 				Vector3D.Multiply(0.05, vector), 0.005, 50);
+			Vector3D person_vec = vector;
 			SolidColorBrush brush5 = Brushes.Red;
 			DiffuseMaterial material5 = new DiffuseMaterial(brush5);
 			GeometryModel3D model5 = new GeometryModel3D(mesh5, material5);
 			MainModel3Dgroup.Children.Add(model5);
+
+			// Add line between person and satellite
+			MeshGeometry3D mesh6 = new MeshGeometry3D();
+			AddSmoothCylinder(mesh6, new Point3D(person_vec.X, person_vec.Y, person_vec.Z), Vector3D.Subtract(sat_vector, person_vec), 0.001, 50);
+			SolidColorBrush brush6 = new SolidColorBrush(Color.FromArgb(0x80, 0xff, 0, 0));
+			DiffuseMaterial material6 = new DiffuseMaterial(brush6);
+			GeometryModel3D model6 = new GeometryModel3D(mesh6, material6);
+			MainModel3Dgroup.Children.Add(model6);
+
 		}
 
 		// Add a triangle to the indicated mesh.
@@ -280,17 +287,21 @@ namespace PhysikLaborSatellit
 			switch (e.Key)
 			{
 				case Key.Up:
+				case Key.W:
 					CameraPhi += CameraDPhi;
 					if (CameraPhi > Math.PI / 2.0) CameraPhi = Math.PI / 2.0;
 					break;
 				case Key.Down:
+				case Key.S:
 					CameraPhi -= CameraDPhi;
 					if (CameraPhi < -Math.PI / 2.0) CameraPhi = -Math.PI / 2.0;
 					break;
 				case Key.Left:
+				case Key.A:
 					CameraTheta += CameraDTheta;
 					break;
 				case Key.Right:
+				case Key.D:
 					CameraTheta -= CameraDTheta;
 					break;
 				case Key.Add:
@@ -302,8 +313,10 @@ namespace PhysikLaborSatellit
 				case Key.OemMinus:
 					CameraR += CameraDR;
 					break;
+				default:
+					return;
 			}
-
+			e.Handled = true;
 			// Update the camera's position.
 			PositionCamera();
 		}
@@ -600,7 +613,6 @@ namespace PhysikLaborSatellit
 						center.X + r1 * Math.Cos(theta1),
 						center.Y + y1,
 						center.Z + r1 * Math.Sin(theta1));
-
 					// Create the triangles.
 					AddSmoothTriangle(mesh, dict, pt00, pt11, pt10);
 					AddSmoothTriangle(mesh, dict, pt00, pt01, pt11);
@@ -615,6 +627,67 @@ namespace PhysikLaborSatellit
 				phi0 = phi1;
 				y0 = y1;
 				r0 = r1;
+			}
+		}
+
+		private void MakeSphere(Model3DGroup model_group, ref MeshGeometry3D sphere_mesh, Material sphere_material, double radius, double cx, double cy, double cz, int num_phi, int num_theta)
+		{
+			// Make the mesh if we must.
+			if (sphere_mesh == null)
+			{
+				sphere_mesh = new MeshGeometry3D();
+				GeometryModel3D new_model =
+					new GeometryModel3D(sphere_mesh, sphere_material);
+				model_group.Children.Add(new_model);
+			}
+
+			double dphi = Math.PI / num_phi;
+			double dtheta = 2 * Math.PI / num_theta;
+
+			// Remember the first point.
+			int pt0 = sphere_mesh.Positions.Count;
+
+			// Make the points.
+			double phi1 = Math.PI / 2;
+			for (int p = 0; p <= num_phi; p++)
+			{
+				double r1 = radius * Math.Cos(phi1);
+				double y1 = radius * Math.Sin(phi1);
+
+				double theta = 0;
+				for (int t = 0; t <= num_theta; t++)
+				{
+					sphere_mesh.Positions.Add(new Point3D(
+						cx + r1 * Math.Cos(theta),
+						cy + y1,
+						cz + -r1 * Math.Sin(theta)));
+					sphere_mesh.TextureCoordinates.Add(new Point(
+						(double)t / num_theta, (double)p / num_phi));
+					theta += dtheta;
+				}
+				phi1 -= dphi;
+			}
+
+			// Make the triangles.
+			int i1, i2, i3, i4;
+			for (int p = 0; p <= num_phi - 1; p++)
+			{
+				i1 = p * (num_theta + 1);
+				i2 = i1 + (num_theta + 1);
+				for (int t = 0; t <= num_theta - 1; t++)
+				{
+					i3 = i1 + 1;
+					i4 = i2 + 1;
+					sphere_mesh.TriangleIndices.Add(pt0 + i1);
+					sphere_mesh.TriangleIndices.Add(pt0 + i2);
+					sphere_mesh.TriangleIndices.Add(pt0 + i4);
+
+					sphere_mesh.TriangleIndices.Add(pt0 + i1);
+					sphere_mesh.TriangleIndices.Add(pt0 + i4);
+					sphere_mesh.TriangleIndices.Add(pt0 + i3);
+					i1 += 1;
+					i2 += 1;
+				}
 			}
 		}
 

@@ -67,11 +67,11 @@
 			<Button Content="Berechnen" Margin="5,20,5,0" Click="Button_Click" />
 
 			<Label Content="Azimutwinkel:" />
-			<TextBox x:Name="azimutText" IsReadOnly="True"/>
+			<TextBox x:Name="azimutText" IsReadOnly="True" Focusable="False"/>
 			<Label Content="Elevationswinkel:"/>
-			<TextBox x:Name="elevationText" IsReadOnly="True"/>
+			<TextBox x:Name="elevationText" IsReadOnly="True" Focusable="False"/>
 			<Label Content="Deklinationswinkel:"/>
-			<TextBox x:Name="declinationText" IsReadOnly="True"/>
+			<TextBox x:Name="declinationText" IsReadOnly="True" Focusable="False"/>
 		</StackPanel>
 	</Grid>
 </Window>
