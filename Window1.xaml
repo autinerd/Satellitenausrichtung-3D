@@ -25,7 +25,22 @@
 			<ColumnDefinition Width="5*"/>
 			<ColumnDefinition/>
 		</Grid.ColumnDefinitions>
-		<Viewport3D Name="MainViewport" Focusable="True"/>
+		<TabControl>
+			<TabItem Header="3D-Ansicht">
+				<Viewport3D Name="MainViewport" Focusable="True"/>
+			</TabItem>
+			<TabItem Header="Elevationskurve">
+				<DataGrid x:Name="angleGrid" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" CanUserSortColumns="False" CanUserReorderColumns="False">
+					<DataGrid.Columns>
+						<DataGridTextColumn Binding="{Binding Azimut}" Header="Azimutwinkel"/>
+						<DataGridTextColumn Binding="{Binding Elevation}" Header="Elevationswinkel"/>
+						<DataGridTextColumn Binding="{Binding Deklination}" Header="Deklinationswinkel"/>
+					</DataGrid.Columns>
+				</DataGrid>
+			</TabItem>
+			
+		</TabControl>
+		
 		<StackPanel Grid.Column="1">
 			<Label Content="Längengrad:" Target="{Binding ElementName=longText}"></Label>
 			<TextBox x:Name="longText" Margin="5,0" Style="{StaticResource TextBoxInError}" GotFocus="TextBox_GotFocus">
@@ -67,11 +82,11 @@
 			<Button Content="Berechnen" Margin="5,20,5,0" Click="Button_Click" />
 
 			<Label Content="Azimutwinkel:" />
-			<TextBox x:Name="azimutText" IsReadOnly="True" Focusable="False"/>
+			<TextBox x:Name="azimutText" IsReadOnly="True" Margin="5,0" Focusable="False"/>
 			<Label Content="Elevationswinkel:"/>
-			<TextBox x:Name="elevationText" IsReadOnly="True" Focusable="False"/>
+			<TextBox x:Name="elevationText" IsReadOnly="True" Margin="5,0" Focusable="False"/>
 			<Label Content="Deklinationswinkel:"/>
-			<TextBox x:Name="declinationText" IsReadOnly="True" Focusable="False"/>
+			<TextBox x:Name="declinationText" IsReadOnly="True" Margin="5,0" Focusable="False"/>
 		</StackPanel>
 	</Grid>
 </Window>

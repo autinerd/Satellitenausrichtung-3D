@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -14,6 +16,7 @@ namespace PhysikLaborSatellit
 	/// </summary>
 	public partial class Window1 : Window
 	{
+		ObservableCollection<ElevationCurveRow> rows = new ObservableCollection<ElevationCurveRow>();
 
 		public Window1() => InitializeComponent();
 
@@ -26,7 +29,7 @@ namespace PhysikLaborSatellit
 		// The camera's current location.
 		//private double CameraPhi = Math.PI / 6.0;       // 30 degrees
 		//private double CameraTheta = Math.PI / 6.0;     // 30 degrees
-		private double CameraR = 2.0;
+		private double CameraR = 1.3 / radius_earth;
 
 		private double CameraPhi = 0;       // 0 degrees
 		private double CameraTheta = 0;     // 0 degrees
@@ -53,11 +56,11 @@ namespace PhysikLaborSatellit
 				FieldOfView = 60
 			};
 			MainViewport.Camera = TheCamera;
-			PositionCamera();
+
 
 			// Create the model.
 			DefineModel(0, 0, 0);
-
+			PositionCamera();
 			// Add the group of models to a ModelVisual3D.
 			ModelVisual3D model_visual = new ModelVisual3D
 			{
@@ -88,8 +91,7 @@ namespace PhysikLaborSatellit
 			DefineLights();
 
 			// Make earth
-			MeshGeometry3D mesh1 = new MeshGeometry3D();
-			AddSmoothSphere(mesh1, new Point3D(0, 0, 0), radius_earth, 180, 360);
+			AddSmoothSphere(out MeshGeometry3D mesh1, new Point3D(0, 0, 0), 1, 180, 360);
 			ImageBrush imageBrush = new ImageBrush(new BitmapImage(new Uri("pack://application:,,,/world.jpg")));
 
 			SolidColorBrush brush1 = Brushes.Aqua;
@@ -99,10 +101,9 @@ namespace PhysikLaborSatellit
 			MainModel3Dgroup.Children.Add(model1);
 
 			// Make satellite cylinder
-			MeshGeometry3D mesh4 = new MeshGeometry3D();
-			Vector3D vector = SphericalCoordinatesToCartesic(1, SatelliteAntennaCalculator.DegToRad(longitudeSat), 0);
-			AddSmoothCylinder(mesh4, new Point3D(vector.X, vector.Y, vector.Z),
-				Vector3D.Multiply(vector, 0.005), 0.005, 50);
+			Vector3D vector = SphericalCoordinatesToCartesic(1 / radius_earth, SatelliteAntennaCalculator.DegToRad(longitudeSat), 0);
+			AddSmoothCylinder(out MeshGeometry3D mesh4, new Point3D(vector.X, vector.Y, vector.Z),
+				Vector3D.Multiply(vector, 0.02), 0.05, 50);
 			Vector3D sat_vector = vector;
 			SolidColorBrush brush4 = Brushes.DarkGray;
 			DiffuseMaterial material4 = new DiffuseMaterial(brush4);
@@ -110,24 +111,31 @@ namespace PhysikLaborSatellit
 			MainModel3Dgroup.Children.Add(model4);
 
 			// Make person cylinder
-			MeshGeometry3D mesh5 = new MeshGeometry3D();
-			vector = SphericalCoordinatesToCartesic(radius_earth, SatelliteAntennaCalculator.DegToRad(longitude), SatelliteAntennaCalculator.DegToRad(latitude));
-			AddSmoothCylinder(mesh5, new Point3D(vector.X, vector.Y, vector.Z),
-				Vector3D.Multiply(0.05, vector), 0.005, 50);
+			vector = SphericalCoordinatesToCartesic(1, SatelliteAntennaCalculator.DegToRad(longitude), SatelliteAntennaCalculator.DegToRad(latitude));
+			AddSmoothCylinder(out MeshGeometry3D mesh5, new Point3D(vector.X, vector.Y, vector.Z),
+				Vector3D.Multiply(0.005, vector), 0.00005, 50);
 			Vector3D person_vec = vector;
 			SolidColorBrush brush5 = Brushes.Red;
 			DiffuseMaterial material5 = new DiffuseMaterial(brush5);
 			GeometryModel3D model5 = new GeometryModel3D(mesh5, material5);
 			MainModel3Dgroup.Children.Add(model5);
 
+			person_vec *= 1.005;
+			AddSmoothCylinder(out MeshGeometry3D mesh7, new Point3D(person_vec.X, person_vec.Y, person_vec.Z), Vector3D.Subtract(sat_vector, person_vec) * 0.00005, 0.003, 50);
+			GeometryModel3D model7 = new GeometryModel3D(mesh7, new DiffuseMaterial(Brushes.Gray));
+			MainModel3Dgroup.Children.Add(model7);
+
 			// Add line between person and satellite
-			MeshGeometry3D mesh6 = new MeshGeometry3D();
-			AddSmoothCylinder(mesh6, new Point3D(person_vec.X, person_vec.Y, person_vec.Z), Vector3D.Subtract(sat_vector, person_vec), 0.001, 50);
-			SolidColorBrush brush6 = new SolidColorBrush(Color.FromArgb(0x80, 0xff, 0, 0));
+			AddSmoothCylinder(out MeshGeometry3D mesh6, new Point3D(person_vec.X, person_vec.Y, person_vec.Z), Vector3D.Subtract(sat_vector, person_vec), 0.003, 50);
+			SolidColorBrush brush6;
+			if (SatelliteAntennaCalculator.GetElevationAngle(longitude, latitude, longitudeSat) < 0)
+				brush6 = new SolidColorBrush(Color.FromArgb(0x80, 0xff, 0, 0));
+			else
+				brush6 = new SolidColorBrush(Color.FromArgb(0x80, 0x01, 0x32, 0x20));
+
 			DiffuseMaterial material6 = new DiffuseMaterial(brush6);
 			GeometryModel3D model6 = new GeometryModel3D(mesh6, material6);
 			MainModel3Dgroup.Children.Add(model6);
-
 		}
 
 		// Add a triangle to the indicated mesh.
@@ -203,17 +211,17 @@ namespace PhysikLaborSatellit
 			if (extend)
 			{
 				// Increase the segment's length on both ends by thickness / 2.
-				Vector3D n = ScaleVector(v, thickness / 2.0);
+				Vector3D n = Vector3D.Multiply(v, thickness / 2.0);
 				point1 -= n;
 				point2 += n;
 			}
 
 			// Get the scaled up vector.
-			Vector3D n1 = ScaleVector(up, thickness / 2.0);
+			Vector3D n1 = Vector3D.Multiply(up, thickness / 2.0);
 
 			// Get another scaled perpendicular vector.
 			Vector3D n2 = Vector3D.CrossProduct(v, n1);
-			n2 = ScaleVector(n2, thickness / 2.0);
+			n2 = Vector3D.Multiply(n2, thickness / 2.0);
 
 			// Make a skinny box.
 			// p1pm means point1 PLUS n1 MINUS n2.
@@ -269,16 +277,6 @@ namespace PhysikLaborSatellit
 			AddSegment(mesh, new Point3D(1, -1, -1), new Point3D(1, 1, -1), right);
 			AddSegment(mesh, new Point3D(-1, -1, 1), new Point3D(-1, 1, 1), right);
 			AddSegment(mesh, new Point3D(-1, -1, -1), new Point3D(-1, 1, -1), right);
-		}
-
-		// Set the vector's length.
-		private Vector3D ScaleVector(Vector3D vector, double length)
-		{
-			double scale = length / vector.Length;
-			return new Vector3D(
-				vector.X * scale,
-				vector.Y * scale,
-				vector.Z * scale);
 		}
 
 		// Adjust the camera's position.
@@ -340,6 +338,28 @@ namespace PhysikLaborSatellit
 			// Console.WriteLine("Camera.Position: (" + x + ", " + y + ", " + z + ")");
 		}
 
+		double CameraRSat = 0.0;
+
+		private void PositionSatelliteCamera()
+		{
+			MyDataSource ods = (MyDataSource)Resources["Ods"];
+			double latitude = ods.Latitude;
+			double longitude = ods.Longitude;
+			double longitudeSat = ods.LongitudeSat;
+			Vector3D sat_vector = SphericalCoordinatesToCartesic(1, SatelliteAntennaCalculator.DegToRad(longitudeSat), 0);
+			Vector3D vector = SphericalCoordinatesToCartesic(radius_earth * 1.05, SatelliteAntennaCalculator.DegToRad(longitude), SatelliteAntennaCalculator.DegToRad(latitude));
+			double beta = SatelliteAntennaCalculator.DegToRad(latitude);
+			Matrix3D m = new Matrix3D(Math.Cos(beta), 0, -Math.Sin(beta), 0, 0, 1, 0, 0, Math.Sin(beta), 0, Math.Cos(beta), 0, 0, 0, 0, 1);
+			Vector3D a = m.Transform(Vector3D.Subtract(sat_vector, vector));
+			TheCamera.LookDirection = a;
+
+			Vector3D position = vector + CameraRSat * a;
+			TheCamera.Position = new Point3D(position.X, position.Y, position.Z);
+
+			TheCamera.FieldOfView = 60;
+		}
+
+		#region add shapes
 		// Add a cylinder.
 		private void AddCylinder(MeshGeometry3D mesh, Point3D end_point, Vector3D axis, double radius, int num_sides)
 		{
@@ -406,8 +426,9 @@ namespace PhysikLaborSatellit
 		}
 
 		// Add a cylinder with smooth sides.
-		private void AddSmoothCylinder(MeshGeometry3D mesh, Point3D end_point, Vector3D axis, double radius, int num_sides)
+		private void AddSmoothCylinder(out MeshGeometry3D mesh, Point3D end_point, Vector3D axis, double radius, int num_sides)
 		{
+			mesh = new MeshGeometry3D();
 			// Get two vectors perpendicular to the axis.
 			Vector3D v1;
 			if ((axis.Z < -0.01) || (axis.Z > 0.01))
@@ -571,8 +592,9 @@ namespace PhysikLaborSatellit
 		}
 
 		// Add a sphere.
-		private void AddSmoothSphere(MeshGeometry3D mesh, Point3D center, double radius, int num_phi, int num_theta)
+		private void AddSmoothSphere(out MeshGeometry3D mesh, Point3D center, double radius, int num_phi, int num_theta)
 		{
+			mesh = new MeshGeometry3D();
 			// Make a dictionary to track the sphere's points.
 			Dictionary<Point3D, int> dict = new Dictionary<Point3D, int>();
 
@@ -690,10 +712,11 @@ namespace PhysikLaborSatellit
 				}
 			}
 		}
+		#endregion
 
 		private Vector3D SphericalCoordinatesToCartesic(double radius, double phi, double lambda) => new Vector3D(radius * Math.Cos(phi) * Math.Cos(lambda), radius * Math.Cos(phi) * Math.Sin(lambda), radius * Math.Sin(phi));
 
-		// Calculate button
+		// Calculate button click
 		private void Button_Click(object sender, RoutedEventArgs e)
 		{
 			if (Validation.GetHasError(longText) || Validation.GetHasError(latText) || Validation.GetHasError(longSatText)) return;
@@ -702,15 +725,36 @@ namespace PhysikLaborSatellit
 			double latitude = double.Parse(latText.Text) * ((latSouth.IsChecked == true) ? -1 : 1);
 			double longitudeSat = double.Parse(longSatText.Text) * ((longSatEast.IsChecked == true) ? -1 : 1);
 
-			DefineModel(longitude, latitude, longitudeSat);
 			CameraPhi = 0;
 			CameraTheta = SatelliteAntennaCalculator.DegToRad(longitudeSat);
-			PositionCamera();
+
 			MainViewport.Focus();
 
-			azimutText.Text = SatelliteAntennaCalculator.GetAzimutAngle(longitude, latitude, longitudeSat).ToString("#.##°");
+			double elevation = SatelliteAntennaCalculator.GetElevationAngle(longitude, latitude, longitudeSat);
 
-			elevationText.Text = SatelliteAntennaCalculator.GetElevationAngle(longitude, latitude, longitudeSat).ToString("#.##°");
+			if (elevation > 0)
+			{
+				azimutText.Text = SatelliteAntennaCalculator.GetAzimutAngle(longitude, latitude, longitudeSat).ToString("0#.#0°");
+				elevationText.Text = elevation.ToString("0#.#0°");
+				declinationText.Text = SatelliteAntennaCalculator.GetDeclinationAngle(longitude, latitude, longitudeSat).ToString("0#.#0°");
+				azimutText.Background = elevationText.Background = declinationText.Background = Brushes.White;
+				azimutText.Foreground = declinationText.Foreground = elevationText.Foreground = Brushes.Black;
+			}
+			else
+			{
+				SolidColorBrush b = new SolidColorBrush(Color.FromArgb(0x99, 0xFF, 00, 00));
+				azimutText.Background = elevationText.Background = declinationText.Background = b;
+				azimutText.Foreground = declinationText.Foreground = elevationText.Foreground = Brushes.White;
+				azimutText.Text = declinationText.Text = elevationText.Text = "Nicht empfangbar!";
+			}
+
+			DefineModel(longitude, latitude, longitudeSat);
+
+			PositionCamera();
+
+			FillElevationCurveRows(latitude, longitude, longitudeSat);
+			angleGrid.ItemsSource = rows;
+
 		}
 
 		// Zoom with the Mouse wheel
@@ -722,10 +766,29 @@ namespace PhysikLaborSatellit
 				if (CameraR < CameraDR) CameraR = CameraDR;
 			}
 			else
-			{
 				CameraR += CameraDR;
-			}
 			PositionCamera();
+
+		}
+
+		void FillElevationCurveRows(double latitude, double longitude, double longitudeSat)
+		{
+			rows.Clear();
+			int begin = ((latitude > 0) ? 90 : 270);
+			for (int i = begin; i != (begin + 180 + 5) % 360; i = (i + 5) % 360)
+			{
+				double alpha = SatelliteAntennaCalculator.GetElevationCurve(i, latitude);
+				if (alpha < 0)
+				{
+					rows.Add(new ElevationCurveRow { Azimut = i.ToString("0°"), Elevation = "nicht empfangbar", Deklination = "nicht empfangbar" });
+					continue;
+				}
+				else
+				{
+					double delta = SatelliteAntennaCalculator.GetDeclinationAngle(i, latitude);
+					rows.Add(new ElevationCurveRow { Azimut = i.ToString("0°"), Elevation = alpha.ToString("0#.#0°"), Deklination = delta.ToString("0#.#0°") });
+				}
+			}
 		}
 
 		// Keybord focus selects all text of textbox

@@ -4,7 +4,7 @@ namespace PhysikLaborSatellit
 {
 	internal static class SatelliteAntennaCalculator
 	{
-		const double k = 0.151;
+		const double k = 0.15127523866823;
 
 		/// <summary>
 		/// Konvertiert Gradmaß in Bogenmaß
@@ -50,6 +50,8 @@ namespace PhysikLaborSatellit
 		/// <returns>Elevationswinkel</returns>
 		internal static double GetElevationAngle(double longitude, double latitude, double longitudeSat)
 		{
+			if (latitude == 0)
+				return 90;
 			double lambda = DegToRad(longitudeSat - longitude);
 			double beta = DegToRad(latitude);
 			double alpha = Math.Atan((Math.Cos(lambda) * Math.Cos(beta) - k)
@@ -60,18 +62,41 @@ namespace PhysikLaborSatellit
 		/// <summary>
 		/// Gibt den Elevationswinkel abhängig von Azimutwinkel und Breitengrad aus.
 		/// </summary>
-		/// <param name="psi">Azimutwinkel im Bogenmaß</param>
-		/// <param name="beta">Breitengrad im Bogenmaß</param>
-		/// <returns>Elevationswinkel im Bogenmaß</returns>
+		/// <param name="psi">Azimutwinkel im Gradmaß</param>
+		/// <param name="beta">Breitengrad im Gradmaß</param>
+		/// <returns>Elevationswinkel im Gradmaß</returns>
 		internal static double GetElevationCurve(double psi, double beta)
 		{
-			double test = Math.Cos(psi) / Math.Tan(beta);
-			double ergebnis = test - k * (Math.Sqrt(Math.Pow(test, 2) + 1));
-			if (beta < 0)
-				ergebnis *= -1;
-			return ergebnis;
+			if (beta == 0)
+			{
+				return 90;
+			}
+			double test = Math.Cos(DegToRad(psi)) / Math.Tan(DegToRad(beta));
+			double ergebnis = Math.Atan(-test - k * Math.Sqrt(1 + Math.Pow(test, 2)));
+			return RadToDeg(ergebnis);
 		}
 
+		internal static double GetDeclinationAngle(double longitude, double latitude, double longitudeSat)
+		{
+			double beta = DegToRad(latitude);
+			double lambda = DegToRad(longitudeSat - longitude);
 
+			double delta = Math.Abs(Math.Atan(k * Math.Sin(beta) / Math.Sqrt(1 + Math.Pow(k * Math.Cos(beta), 2) - 2 * k * Math.Cos(beta) * Math.Cos(lambda))));
+
+			return RadToDeg(delta);
+		}
+
+		internal static double GetDeclinationAngle(double psi, double beta)
+		{
+			if (beta == 0)
+				return 0;
+			beta = DegToRad(beta);
+			psi = DegToRad(psi);
+			double lambda = Math.Atan(Math.Tan(psi) * Math.Sin(beta));
+
+			double delta = Math.Abs(Math.Atan(k * Math.Sin(beta) / Math.Sqrt(1 + Math.Pow(k * Math.Cos(beta), 2) - 2 * k * Math.Cos(beta) * Math.Cos(lambda))));
+
+			return RadToDeg(delta);
+		}
 	}
 }

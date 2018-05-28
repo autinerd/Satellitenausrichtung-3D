@@ -93,4 +93,11 @@ namespace PhysikLaborSatellit
 			return null;
 		}
 	}
+
+	public class ElevationCurveRow
+	{
+		public string Azimut { get; set; }
+		public string Elevation { get; set; }
+		public string Deklination { get; set; }
+	}
 }
