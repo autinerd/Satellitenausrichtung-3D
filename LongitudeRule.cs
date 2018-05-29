@@ -11,12 +11,13 @@ namespace PhysikLaborSatellit
 		public double Max => 180;
 		public override ValidationResult Validate(object value, CultureInfo cultureInfo)
 		{
+			string v = (string)value;
 			double longitude = 0;
 			try
 			{
-				if (((string)value).Length > 0)
+				if (v.Length > 0)
 				{
-					longitude = double.Parse((string)value, NumberStyles.Float);
+					longitude = double.Parse(v, NumberStyles.Float, CultureInfo.CurrentCulture);
 				}
 			}
 			catch (Exception)
@@ -37,12 +38,13 @@ namespace PhysikLaborSatellit
 		public double Max => 90;
 		public override ValidationResult Validate(object value, CultureInfo cultureInfo)
 		{
+			string v = (string)value;
 			double latitude = 0;
 			try
 			{
-				if (((string)value).Length > 0)
+				if (v.Length > 0)
 				{
-					latitude = double.Parse((string)value);
+					latitude = double.Parse(v, CultureInfo.CurrentCulture);
 				}
 			}
 			catch (Exception)

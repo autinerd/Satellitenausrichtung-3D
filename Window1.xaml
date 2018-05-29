@@ -26,7 +26,7 @@
 			<ColumnDefinition/>
 		</Grid.ColumnDefinitions>
 		<TabControl>
-			<TabItem Header="3D-Ansicht">
+			<TabItem Header="3D-Ansicht" IsSelected="True">
 				<Viewport3D Name="MainViewport" Focusable="True"/>
 			</TabItem>
 			<TabItem Header="Elevationskurve">
@@ -38,7 +38,19 @@
 					</DataGrid.Columns>
 				</DataGrid>
 			</TabItem>
-			
+			<TabItem x:Name="ExportTab" IsEnabled="False" Header="Export">
+				<StackPanel>
+					<Label Content="Format zum Export auswählen"/>
+					<RadioButton x:Name="ExportText" Content="Nur-Text" GroupName="ExportFormat" Margin="5,0" IsChecked="True"/>
+					<RadioButton x:Name="ExportCSV" Content="CSV" GroupName="ExportFormat" Margin="5,0"/>
+					<RadioButton x:Name="ExportXML" Content="XML" GroupName="ExportFormat" Margin="5,0"/>
+					<RadioButton x:Name="ExportJSON" Content="JSON" GroupName="ExportFormat" Margin="5,0"/>
+					<TextBox x:Name="fileNameBox" IsEnabled="False" IsReadOnly="True" Margin="5,5,5,0"/>
+					<Button Content="Durchsuchen..." Width="100" HorizontalAlignment="Left" Margin="5,5,0,0" Click="Button_Click_1"/>
+					<Button Content="Export" Width="100" HorizontalAlignment="Left" Margin="5,15,0,0" FontWeight="Bold" Click="Button_Click_2"/>
+					<Button Content="Bild von 3D-Ansicht speichern" Margin="5,15,0,0" Width="180" HorizontalAlignment="Left" Click="Button_Click_3"/>
+				</StackPanel>
+			</TabItem>
 		</TabControl>
 		
 		<StackPanel Grid.Column="1">
@@ -66,7 +78,7 @@
 			</TextBox>
 			<RadioButton x:Name="latNorth" Content="Nord" Margin="5,2,5,0" GroupName="Latitude" IsChecked="True" />
 			<RadioButton x:Name="latSouth" Content="Süd" Margin="5,0,5,10" GroupName="Latitude"/>
-			<Separator></Separator>
+			<Separator/>
 			<Label Content="Längengrad (Satellit):" Target="{Binding ElementName=longSatText}"></Label>
 			<TextBox x:Name="longSatText" Margin="5,0" Style="{StaticResource TextBoxInError}" GotFocus="TextBox_GotFocus">
 				<TextBox.Text>
@@ -79,8 +91,8 @@
 			</TextBox>
 			<RadioButton x:Name="longSatEast" Content="Ost" Margin="5,2,5,0" GroupName="LongitudeSatellite" IsChecked="True" />
 			<RadioButton x:Name="longSatWest" Content="West" Margin="5,0" GroupName="LongitudeSatellite"/>
-			<Button Content="Berechnen" Margin="5,20,5,0" Click="Button_Click" />
-
+			<Button Content="Berechnen" Margin="5,20,5,5" Click="Button_Click" />
+			<Separator/>
 			<Label Content="Azimutwinkel:" />
 			<TextBox x:Name="azimutText" IsReadOnly="True" Margin="5,0" Focusable="False"/>
 			<Label Content="Elevationswinkel:"/>

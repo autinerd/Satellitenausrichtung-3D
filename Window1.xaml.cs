@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -8,6 +9,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
+using Microsoft.Win32;
 
 namespace PhysikLaborSatellit
 {
@@ -16,7 +18,7 @@ namespace PhysikLaborSatellit
 	/// </summary>
 	public partial class Window1 : Window
 	{
-		ObservableCollection<ElevationCurveRow> rows = new ObservableCollection<ElevationCurveRow>();
+		internal ObservableCollection<ElevationCurveRow> rows = new ObservableCollection<ElevationCurveRow>();
 
 		public Window1() => InitializeComponent();
 
@@ -46,8 +48,6 @@ namespace PhysikLaborSatellit
 		const double radius_earth = 0.151;
 
 		// Create the scene.
-		// MainViewport is the Viewport3D defined
-		// in the XAML code that displays everything.
 		private void Window_Loaded(object sender, RoutedEventArgs e)
 		{
 			// Give the camera its initial position.
@@ -92,7 +92,6 @@ namespace PhysikLaborSatellit
 
 			// Make earth
 			AddSmoothSphere(out MeshGeometry3D mesh1, new Point3D(0, 0, 0), 1, 180, 360);
-			ImageBrush imageBrush = new ImageBrush(new BitmapImage(new Uri("pack://application:,,,/world.jpg")));
 
 			SolidColorBrush brush1 = Brushes.Aqua;
 			DiffuseMaterial material1 = new DiffuseMaterial(brush1);
@@ -137,26 +136,11 @@ namespace PhysikLaborSatellit
 			GeometryModel3D model6 = new GeometryModel3D(mesh6, material6);
 			MainModel3Dgroup.Children.Add(model6);
 		}
-
-		// Add a triangle to the indicated mesh.
-		// Do not reuse points so triangles don't share normals.
-		private void AddTriangle(MeshGeometry3D mesh, Point3D point1, Point3D point2, Point3D point3)
-		{
-			// Create the points.
-			int index1 = mesh.Positions.Count;
-			mesh.Positions.Add(point1);
-			mesh.Positions.Add(point2);
-			mesh.Positions.Add(point3);
-
-			// Create the triangle.
-			mesh.TriangleIndices.Add(index1++);
-			mesh.TriangleIndices.Add(index1++);
-			mesh.TriangleIndices.Add(index1);
-		}
+		
 
 		// Add a triangle to the indicated mesh.
 		// Reuse points so triangles share normals.
-		private void AddSmoothTriangle(MeshGeometry3D mesh, Dictionary<Point3D, int> dict, Point3D point1, Point3D point2, Point3D point3)
+		private static void AddSmoothTriangle(MeshGeometry3D mesh, Dictionary<Point3D, int> dict, Point3D point1, Point3D point2, Point3D point3)
 		{
 			int index1, index2, index3;
 
@@ -195,88 +179,6 @@ namespace PhysikLaborSatellit
 			mesh.TriangleIndices.Add(index1);
 			mesh.TriangleIndices.Add(index2);
 			mesh.TriangleIndices.Add(index3);
-		}
-
-		// Make a thin rectangular prism between the two points.
-		// If extend is true, extend the segment by half the
-		// thickness so segments with the same end points meet nicely.
-		private void AddSegment(MeshGeometry3D mesh, Point3D point1, Point3D point2, Vector3D up) => AddSegment(mesh, point1, point2, up, false);
-		private void AddSegment(MeshGeometry3D mesh, Point3D point1, Point3D point2, Vector3D up, bool extend)
-		{
-			const double thickness = 0.25;
-
-			// Get the segment's vector.
-			Vector3D v = point2 - point1;
-
-			if (extend)
-			{
-				// Increase the segment's length on both ends by thickness / 2.
-				Vector3D n = Vector3D.Multiply(v, thickness / 2.0);
-				point1 -= n;
-				point2 += n;
-			}
-
-			// Get the scaled up vector.
-			Vector3D n1 = Vector3D.Multiply(up, thickness / 2.0);
-
-			// Get another scaled perpendicular vector.
-			Vector3D n2 = Vector3D.CrossProduct(v, n1);
-			n2 = Vector3D.Multiply(n2, thickness / 2.0);
-
-			// Make a skinny box.
-			// p1pm means point1 PLUS n1 MINUS n2.
-			Point3D p1pp = point1 + n1 + n2;
-			Point3D p1mp = point1 - n1 + n2;
-			Point3D p1pm = point1 + n1 - n2;
-			Point3D p1mm = point1 - n1 - n2;
-			Point3D p2pp = point2 + n1 + n2;
-			Point3D p2mp = point2 - n1 + n2;
-			Point3D p2pm = point2 + n1 - n2;
-			Point3D p2mm = point2 - n1 - n2;
-
-			// Sides.
-			AddTriangle(mesh, p1pp, p1mp, p2mp);
-			AddTriangle(mesh, p1pp, p2mp, p2pp);
-
-			AddTriangle(mesh, p1pp, p2pp, p2pm);
-			AddTriangle(mesh, p1pp, p2pm, p1pm);
-
-			AddTriangle(mesh, p1pm, p2pm, p2mm);
-			AddTriangle(mesh, p1pm, p2mm, p1mm);
-
-			AddTriangle(mesh, p1mm, p2mm, p2mp);
-			AddTriangle(mesh, p1mm, p2mp, p1mp);
-
-			// Ends.
-			AddTriangle(mesh, p1pp, p1pm, p1mm);
-			AddTriangle(mesh, p1pp, p1mm, p1mp);
-
-			AddTriangle(mesh, p2pp, p2mp, p2mm);
-			AddTriangle(mesh, p2pp, p2mm, p2pm);
-		}
-
-		// Add a cage.
-		private void AddCage(MeshGeometry3D mesh)
-		{
-			// Top.
-			Vector3D up = new Vector3D(0, 1, 0);
-			AddSegment(mesh, new Point3D(1, 1, 1), new Point3D(1, 1, -1), up, true);
-			AddSegment(mesh, new Point3D(1, 1, -1), new Point3D(-1, 1, -1), up, true);
-			AddSegment(mesh, new Point3D(-1, 1, -1), new Point3D(-1, 1, 1), up, true);
-			AddSegment(mesh, new Point3D(-1, 1, 1), new Point3D(1, 1, 1), up, true);
-
-			// Bottom.
-			AddSegment(mesh, new Point3D(1, -1, 1), new Point3D(1, -1, -1), up, true);
-			AddSegment(mesh, new Point3D(1, -1, -1), new Point3D(-1, -1, -1), up, true);
-			AddSegment(mesh, new Point3D(-1, -1, -1), new Point3D(-1, -1, 1), up, true);
-			AddSegment(mesh, new Point3D(-1, -1, 1), new Point3D(1, -1, 1), up, true);
-
-			// Sides.
-			Vector3D right = new Vector3D(1, 0, 0);
-			AddSegment(mesh, new Point3D(1, -1, 1), new Point3D(1, 1, 1), right);
-			AddSegment(mesh, new Point3D(1, -1, -1), new Point3D(1, 1, -1), right);
-			AddSegment(mesh, new Point3D(-1, -1, 1), new Point3D(-1, 1, 1), right);
-			AddSegment(mesh, new Point3D(-1, -1, -1), new Point3D(-1, 1, -1), right);
 		}
 
 		// Adjust the camera's position.
@@ -338,92 +240,7 @@ namespace PhysikLaborSatellit
 			// Console.WriteLine("Camera.Position: (" + x + ", " + y + ", " + z + ")");
 		}
 
-		double CameraRSat = 0.0;
-
-		private void PositionSatelliteCamera()
-		{
-			MyDataSource ods = (MyDataSource)Resources["Ods"];
-			double latitude = ods.Latitude;
-			double longitude = ods.Longitude;
-			double longitudeSat = ods.LongitudeSat;
-			Vector3D sat_vector = SphericalCoordinatesToCartesic(1, SatelliteAntennaCalculator.DegToRad(longitudeSat), 0);
-			Vector3D vector = SphericalCoordinatesToCartesic(radius_earth * 1.05, SatelliteAntennaCalculator.DegToRad(longitude), SatelliteAntennaCalculator.DegToRad(latitude));
-			double beta = SatelliteAntennaCalculator.DegToRad(latitude);
-			Matrix3D m = new Matrix3D(Math.Cos(beta), 0, -Math.Sin(beta), 0, 0, 1, 0, 0, Math.Sin(beta), 0, Math.Cos(beta), 0, 0, 0, 0, 1);
-			Vector3D a = m.Transform(Vector3D.Subtract(sat_vector, vector));
-			TheCamera.LookDirection = a;
-
-			Vector3D position = vector + CameraRSat * a;
-			TheCamera.Position = new Point3D(position.X, position.Y, position.Z);
-
-			TheCamera.FieldOfView = 60;
-		}
-
 		#region add shapes
-		// Add a cylinder.
-		private void AddCylinder(MeshGeometry3D mesh, Point3D end_point, Vector3D axis, double radius, int num_sides)
-		{
-			// Get two vectors perpendicular to the axis.
-			Vector3D v1;
-			if ((axis.Z < -0.01) || (axis.Z > 0.01))
-				v1 = new Vector3D(axis.Z, axis.Z, -axis.X - axis.Y);
-			else
-				v1 = new Vector3D(-axis.Y - axis.Z, axis.X, axis.X);
-			Vector3D v2 = Vector3D.CrossProduct(v1, axis);
-
-			// Make the vectors have length radius.
-			v1 *= (radius / v1.Length);
-			v2 *= (radius / v2.Length);
-
-			// Make the top end cap.
-			double theta = 0;
-			double dtheta = 2 * Math.PI / num_sides;
-			for (int i = 0; i < num_sides; i++)
-			{
-				Point3D p1 = end_point +
-					Math.Cos(theta) * v1 +
-					Math.Sin(theta) * v2;
-				theta += dtheta;
-				Point3D p2 = end_point +
-					Math.Cos(theta) * v1 +
-					Math.Sin(theta) * v2;
-				AddTriangle(mesh, end_point, p1, p2);
-			}
-
-			// Make the bottom end cap.
-			Point3D end_point2 = end_point + axis;
-			theta = 0;
-			for (int i = 0; i < num_sides; i++)
-			{
-				Point3D p1 = end_point2 +
-					Math.Cos(theta) * v1 +
-					Math.Sin(theta) * v2;
-				theta += dtheta;
-				Point3D p2 = end_point2 +
-					Math.Cos(theta) * v1 +
-					Math.Sin(theta) * v2;
-				AddTriangle(mesh, end_point2, p2, p1);
-			}
-
-			// Make the sides.
-			theta = 0;
-			for (int i = 0; i < num_sides; i++)
-			{
-				Point3D p1 = end_point +
-					Math.Cos(theta) * v1 +
-					Math.Sin(theta) * v2;
-				theta += dtheta;
-				Point3D p2 = end_point +
-					Math.Cos(theta) * v1 +
-					Math.Sin(theta) * v2;
-
-				Point3D p3 = p1 + axis;
-				Point3D p4 = p2 + axis;
-
-				AddTriangle(mesh, p1, p3, p2);
-				AddTriangle(mesh, p2, p3, p4);
-			}
-		}
 
 		// Add a cylinder with smooth sides.
 		private void AddSmoothCylinder(out MeshGeometry3D mesh, Point3D end_point, Vector3D axis, double radius, int num_sides)
@@ -534,64 +351,6 @@ namespace PhysikLaborSatellit
 		}
 
 		// Add a sphere.
-		private void AddSphere(MeshGeometry3D mesh, Point3D center, double radius, int num_phi, int num_theta)
-		{
-			double phi0, theta0;
-			double dphi = Math.PI / num_phi;
-			double dtheta = 2 * Math.PI / num_theta;
-
-			phi0 = 0;
-			double y0 = radius * Math.Cos(phi0);
-			double r0 = radius * Math.Sin(phi0);
-			for (int i = 0; i < num_phi; i++)
-			{
-				double phi1 = phi0 + dphi;
-				double y1 = radius * Math.Cos(phi1);
-				double r1 = radius * Math.Sin(phi1);
-
-				// Point ptAB has phi value A and theta value B.
-				// For example, pt01 has phi = phi0 and theta = theta1.
-				// Find the points with theta = theta0.
-				theta0 = 0;
-				Point3D pt00 = new Point3D(
-					center.X + r0 * Math.Cos(theta0),
-					center.Y + y0,
-					center.Z + r0 * Math.Sin(theta0));
-				Point3D pt10 = new Point3D(
-					center.X + r1 * Math.Cos(theta0),
-					center.Y + y1,
-					center.Z + r1 * Math.Sin(theta0));
-				for (int j = 0; j < num_theta; j++)
-				{
-					// Find the points with theta = theta1.
-					double theta1 = theta0 + dtheta;
-					Point3D pt01 = new Point3D(
-						center.X + r0 * Math.Cos(theta1),
-						center.Y + y0,
-						center.Z + r0 * Math.Sin(theta1));
-					Point3D pt11 = new Point3D(
-						center.X + r1 * Math.Cos(theta1),
-						center.Y + y1,
-						center.Z + r1 * Math.Sin(theta1));
-
-					// Create the triangles.
-					AddTriangle(mesh, pt00, pt11, pt10);
-					AddTriangle(mesh, pt00, pt01, pt11);
-
-					// Move to the next value of theta.
-					theta0 = theta1;
-					pt00 = pt01;
-					pt10 = pt11;
-				}
-
-				// Move to the next value of phi.
-				phi0 = phi1;
-				y0 = y1;
-				r0 = r1;
-			}
-		}
-
-		// Add a sphere.
 		private void AddSmoothSphere(out MeshGeometry3D mesh, Point3D center, double radius, int num_phi, int num_theta)
 		{
 			mesh = new MeshGeometry3D();
@@ -651,79 +410,18 @@ namespace PhysikLaborSatellit
 				r0 = r1;
 			}
 		}
-
-		private void MakeSphere(Model3DGroup model_group, ref MeshGeometry3D sphere_mesh, Material sphere_material, double radius, double cx, double cy, double cz, int num_phi, int num_theta)
-		{
-			// Make the mesh if we must.
-			if (sphere_mesh == null)
-			{
-				sphere_mesh = new MeshGeometry3D();
-				GeometryModel3D new_model =
-					new GeometryModel3D(sphere_mesh, sphere_material);
-				model_group.Children.Add(new_model);
-			}
-
-			double dphi = Math.PI / num_phi;
-			double dtheta = 2 * Math.PI / num_theta;
-
-			// Remember the first point.
-			int pt0 = sphere_mesh.Positions.Count;
-
-			// Make the points.
-			double phi1 = Math.PI / 2;
-			for (int p = 0; p <= num_phi; p++)
-			{
-				double r1 = radius * Math.Cos(phi1);
-				double y1 = radius * Math.Sin(phi1);
-
-				double theta = 0;
-				for (int t = 0; t <= num_theta; t++)
-				{
-					sphere_mesh.Positions.Add(new Point3D(
-						cx + r1 * Math.Cos(theta),
-						cy + y1,
-						cz + -r1 * Math.Sin(theta)));
-					sphere_mesh.TextureCoordinates.Add(new Point(
-						(double)t / num_theta, (double)p / num_phi));
-					theta += dtheta;
-				}
-				phi1 -= dphi;
-			}
-
-			// Make the triangles.
-			int i1, i2, i3, i4;
-			for (int p = 0; p <= num_phi - 1; p++)
-			{
-				i1 = p * (num_theta + 1);
-				i2 = i1 + (num_theta + 1);
-				for (int t = 0; t <= num_theta - 1; t++)
-				{
-					i3 = i1 + 1;
-					i4 = i2 + 1;
-					sphere_mesh.TriangleIndices.Add(pt0 + i1);
-					sphere_mesh.TriangleIndices.Add(pt0 + i2);
-					sphere_mesh.TriangleIndices.Add(pt0 + i4);
-
-					sphere_mesh.TriangleIndices.Add(pt0 + i1);
-					sphere_mesh.TriangleIndices.Add(pt0 + i4);
-					sphere_mesh.TriangleIndices.Add(pt0 + i3);
-					i1 += 1;
-					i2 += 1;
-				}
-			}
-		}
 		#endregion
 
-		private Vector3D SphericalCoordinatesToCartesic(double radius, double phi, double lambda) => new Vector3D(radius * Math.Cos(phi) * Math.Cos(lambda), radius * Math.Cos(phi) * Math.Sin(lambda), radius * Math.Sin(phi));
+		private static Vector3D SphericalCoordinatesToCartesic(double radius, double phi, double lambda) => new Vector3D(radius * Math.Cos(phi) * Math.Cos(lambda), radius * Math.Cos(phi) * Math.Sin(lambda), radius * Math.Sin(phi));
 
 		// Calculate button click
 		private void Button_Click(object sender, RoutedEventArgs e)
 		{
 			if (Validation.GetHasError(longText) || Validation.GetHasError(latText) || Validation.GetHasError(longSatText)) return;
 
-			double longitude = double.Parse(longText.Text) * ((longEast.IsChecked == true) ? -1 : 1);
-			double latitude = double.Parse(latText.Text) * ((latSouth.IsChecked == true) ? -1 : 1);
-			double longitudeSat = double.Parse(longSatText.Text) * ((longSatEast.IsChecked == true) ? -1 : 1);
+			double longitude = double.Parse(longText.Text, CultureInfo.CurrentCulture) * ((longEast.IsChecked == true) ? -1 : 1);
+			double latitude = double.Parse(latText.Text, CultureInfo.CurrentCulture) * ((latSouth.IsChecked == true) ? -1 : 1);
+			double longitudeSat = double.Parse(longSatText.Text, CultureInfo.CurrentCulture) * ((longSatEast.IsChecked == true) ? -1 : 1);
 
 			CameraPhi = 0;
 			CameraTheta = SatelliteAntennaCalculator.DegToRad(longitudeSat);
@@ -734,9 +432,9 @@ namespace PhysikLaborSatellit
 
 			if (elevation > 0)
 			{
-				azimutText.Text = SatelliteAntennaCalculator.GetAzimutAngle(longitude, latitude, longitudeSat).ToString("0#.#0°");
-				elevationText.Text = elevation.ToString("0#.#0°");
-				declinationText.Text = SatelliteAntennaCalculator.GetDeclinationAngle(longitude, latitude, longitudeSat).ToString("0#.#0°");
+				azimutText.Text = SatelliteAntennaCalculator.GetAzimutAngle(longitude, latitude, longitudeSat).ToString("0#.#0°", CultureInfo.CurrentCulture);
+				elevationText.Text = elevation.ToString("0#.#0°", CultureInfo.CurrentCulture);
+				declinationText.Text = SatelliteAntennaCalculator.GetDeclinationAngle(longitude, latitude, longitudeSat).ToString("0#.#0°", CultureInfo.CurrentCulture);
 				azimutText.Background = elevationText.Background = declinationText.Background = Brushes.White;
 				azimutText.Foreground = declinationText.Foreground = elevationText.Foreground = Brushes.Black;
 			}
@@ -755,6 +453,7 @@ namespace PhysikLaborSatellit
 			FillElevationCurveRows(latitude, longitude, longitudeSat);
 			angleGrid.ItemsSource = rows;
 
+			ExportTab.IsEnabled = true;
 		}
 
 		// Zoom with the Mouse wheel
@@ -780,18 +479,60 @@ namespace PhysikLaborSatellit
 				double alpha = SatelliteAntennaCalculator.GetElevationCurve(i, latitude);
 				if (alpha < 0)
 				{
-					rows.Add(new ElevationCurveRow { Azimut = i.ToString("0°"), Elevation = "nicht empfangbar", Deklination = "nicht empfangbar" });
+					rows.Add(new ElevationCurveRow { Azimut = i.ToString("0°", CultureInfo.CurrentCulture), Elevation = "nicht empfangbar", Deklination = "nicht empfangbar" });
 					continue;
 				}
 				else
 				{
 					double delta = SatelliteAntennaCalculator.GetDeclinationAngle(i, latitude);
-					rows.Add(new ElevationCurveRow { Azimut = i.ToString("0°"), Elevation = alpha.ToString("0#.#0°"), Deklination = delta.ToString("0#.#0°") });
+					rows.Add(new ElevationCurveRow { Azimut = i.ToString("0°", CultureInfo.CurrentCulture), Elevation = alpha.ToString("0#.#0°", CultureInfo.CurrentCulture), Deklination = delta.ToString("0#.#0°", CultureInfo.CurrentCulture) });
 				}
 			}
 		}
 
 		// Keybord focus selects all text of textbox
 		private void TextBox_GotFocus(object sender, RoutedEventArgs e) => ((TextBox)sender).SelectAll();
+
+		private void Button_Click_1(object sender, RoutedEventArgs e)
+		{
+			SaveFileDialog sfd = new SaveFileDialog()
+			{
+				AddExtension = true,
+				ValidateNames = true,
+				InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+				Filter = "Text-Datei|*.txt|Komma-separierte Werte|*.csv|XML-Datei|*.xml|JSON-Datei|*.json|PNG-Bild|*.png",
+				Title = "Datei exportieren"
+			};
+			if (sfd.ShowDialog() == true)
+			{
+				fileNameBox.Text = sfd.FileName;
+			}
+		}
+
+		private void Button_Click_2(object sender, RoutedEventArgs e)
+		{
+			if (fileNameBox.Text.Length > 0)
+			{
+				if (ExportText.IsChecked == true)
+					DataExport.ExportAsText(this, fileNameBox.Text);
+				if (ExportCSV.IsChecked == true)
+					DataExport.ExportAsCSV(this, fileNameBox.Text);
+				if (ExportXML.IsChecked == true)
+					DataExport.ExportAsXML(this, fileNameBox.Text);
+				if (ExportJSON.IsChecked == true)
+					DataExport.ExportAsJSON(this, fileNameBox.Text);
+			}
+			MessageBox.Show("Erfolgreich exportiert!", "Export erfolgreich", MessageBoxButton.OK, MessageBoxImage.Information, MessageBoxResult.OK, MessageBoxOptions.None);
+		}
+
+		private void Button_Click_3(object sender, RoutedEventArgs e)
+		{
+			if (fileNameBox.Text.Length > 0)
+			{
+				DataExport.ExportPNG(this, fileNameBox.Text);
+			}
+
+			MessageBox.Show("Erfolgreich exportiert!", "Export erfolgreich", MessageBoxButton.OK, MessageBoxImage.Information, MessageBoxResult.OK, MessageBoxOptions.None);
+		}
 	}
 }
