@@ -43,43 +43,57 @@ Elevationskurventabelle
 Azimutwinkel;Elevationswinkel;Deklinationswinkel
 {string.Concat(window.rows.SelectMany((item) => new string[] { string.Format("{0};{1};{2}\r\n", item.Azimut, item.Elevation, item.Deklination) }))}");
 
-		internal static void ExportAsXML(Window1 window, string filepath) => new StreamWriter(filepath, false, Encoding.UTF8).Write(new XDocument(new XDeclaration("1.0", "UTF-8", "yes"),
-			new XElement("Satellite",
-				new XElement("AntennaPosition",
-					new XAttribute("Longitude", $"{window.longText.Text}° {((window.longEast.IsChecked == true) ? "E" : "W")}"),
-					new XAttribute("Latitude", $"{window.latText.Text}° {((window.longEast.IsChecked == true) ? "E" : "W")}")),
-				new XElement("SatellitePosition",
-					new XAttribute("Longitude", $"{window.longSatText.Text}° {((window.longSatEast.IsChecked == true) ? "E" : "W")}")),
-				new XElement("AntennaDirection",
-					new XAttribute("Azimut", window.azimutText.Text),
-					new XAttribute("Elevation", window.elevationText.Text),
-					new XAttribute("Deklination", window.declinationText.Text)),
-				new XElement("ElevationCurve", window.rows.SelectMany((item) => new XElement[] {
-					new XElement("Position",
-						new XAttribute("Azimut", item.Azimut),
-						new XAttribute("Elevation", item.Elevation),
-						new XAttribute("Deklination", item.Deklination))
-				}).ToArray()))).ToString());
-
-		internal static void ExportAsJSON(Window1 window, string filepath) => new StreamWriter(filepath, false, Encoding.UTF8).Write(JObject.FromObject(new
+		internal static void ExportAsXML(Window1 window, string filepath)
 		{
-			AntennaPosition = new
+			using (StreamWriter writer = new StreamWriter(filepath, false, Encoding.UTF8))
 			{
-				Longitude = $"{window.longText.Text}° {((window.longEast.IsChecked == true) ? "E" : "W")}",
-				Latitude = $"{window.latText.Text}° {((window.longEast.IsChecked == true) ? "E" : "W")}"
-			},
-			SatellitPosition = new
+				writer.Write(new XDocument(new XDeclaration("1.0", "UTF-8", "yes"),
+								new XElement("Satellite",
+									new XElement("AntennaPosition",
+										new XAttribute("Longitude", $"{window.longText.Text}° {((window.longEast.IsChecked == true) ? "E" : "W")}"),
+										new XAttribute("Latitude", $"{window.latText.Text}° {((window.longEast.IsChecked == true) ? "E" : "W")}")),
+									new XElement("SatellitePosition",
+										new XAttribute("Longitude", $"{window.longSatText.Text}° {((window.longSatEast.IsChecked == true) ? "E" : "W")}")),
+									new XElement("AntennaDirection",
+										new XAttribute("Azimut", window.azimutText.Text),
+										new XAttribute("Elevation", window.elevationText.Text),
+										new XAttribute("Deklination", window.declinationText.Text)),
+									new XElement("ElevationCurve", window.rows.SelectMany((item) => new XElement[] {
+														new XElement("Position",
+															new XAttribute("Azimut", item.Azimut),
+															new XAttribute("Elevation", item.Elevation),
+															new XAttribute("Deklination", item.Deklination))
+									}).ToArray()))).ToString());
+				writer.Flush();
+			}
+		}
+
+		internal static void ExportAsJSON(Window1 window, string filepath)
+		{
+			using (StreamWriter writer = new StreamWriter(filepath, false, Encoding.UTF8))
 			{
-				Longitude = $"{window.longSatText.Text}° {((window.longSatEast.IsChecked == true) ? "E" : "W")}"
-			},
-			AntennaDirection = new
-			{
-				Azimut = window.azimutText.Text,
-				Elevation = window.elevationText.Text,
-				Deklination = window.declinationText.Text
-			},
-			ElevationCurve = new JArray(window.rows.SelectMany((item) => new[] { new { item.Azimut, item.Deklination, item.Elevation } }).ToArray())
-		}).ToString());
+				writer.Write(JObject.FromObject(new
+				{
+					AntennaPosition = new
+					{
+						Longitude = $"{window.longText.Text}° {((window.longEast.IsChecked == true) ? "E" : "W")}",
+						Latitude = $"{window.latText.Text}° {((window.longEast.IsChecked == true) ? "E" : "W")}"
+					},
+					SatellitPosition = new
+					{
+						Longitude = $"{window.longSatText.Text}° {((window.longSatEast.IsChecked == true) ? "E" : "W")}"
+					},
+					AntennaDirection = new
+					{
+						Azimut = window.azimutText.Text,
+						Elevation = window.elevationText.Text,
+						Deklination = window.declinationText.Text
+					},
+					ElevationCurve = new JArray(window.rows.SelectMany((item) => new JObject[] { JObject.FromObject(new { item.Azimut, item.Deklination, item.Elevation }) }).ToArray())
+				}).ToString());
+				writer.Flush();
+			}
+		}
 
 		internal static void ExportPNG(Window1 window, string filepath)
 		{
