@@ -547,7 +547,15 @@ namespace PhysikLaborSatellit
 			DefineModel(longitude, latitude, longitudeSat);
 			CameraPhi = -SatelliteAntennaCalculator.DegToRad(longitudeSat);
 			CameraTheta = 0;
-			PositionCamera2(longitude, latitude, longitudeSat);
+			switch (SelectedCamera)
+			{
+				case 1:
+					PositionCamera2(longitude, latitude, longitudeSat);
+					break;
+				default:
+					PositionCamera();
+					break;
+			}
 
 			FillElevationCurveRows(latitude, longitude, longitudeSat);
 			angleGrid.ItemsSource = rows;
