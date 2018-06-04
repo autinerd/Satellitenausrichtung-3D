@@ -1,0 +1,5 @@
+C:\Users\kuyateh\Source\Repos\PhysikLaborSatellite\obj\x64\Release\Window1.g.cs
+C:\Users\kuyateh\Source\Repos\PhysikLaborSatellite\obj\x64\Release\App.g.cs
+C:\Users\kuyateh\Source\Repos\PhysikLaborSatellite\obj\x64\Release\GeneratedInternalTypeHelper.g.cs
+C:\Users\kuyateh\Source\Repos\PhysikLaborSatellite\obj\x64\Release\PhysikLaborSatellit_MarkupCompile.cache
+C:\Users\kuyateh\Source\Repos\PhysikLaborSatellite\obj\x64\Release\PhysikLaborSatellit_MarkupCompile.lref

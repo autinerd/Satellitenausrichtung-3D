@@ -2,8 +2,8 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 		xmlns:c="clr-namespace:PhysikLaborSatellit"
-		Title="howto_3D_smooth_sphere"
-    Height="500" Width="750"
+		Title="Satellitenantennenausrichtung"
+    Height="552" Width="750"
     Loaded="Window_Loaded"
     KeyDown="Window_KeyDown" MouseWheel="Window_MouseWheel">
 	<Window.Resources>
@@ -27,7 +27,10 @@
 		</Grid.ColumnDefinitions>
 		<TabControl>
 			<TabItem Header="3D-Ansicht" IsSelected="True">
-				<Viewport3D Name="MainViewport" Focusable="True"/>
+				<DockPanel x:Name="Panel3D">
+					<Viewport3D Name="MainViewport" Focusable="True"/>
+				</DockPanel>
+
 			</TabItem>
 			<TabItem Header="Elevationskurve">
 				<DataGrid x:Name="angleGrid" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" CanUserSortColumns="False" CanUserReorderColumns="False">
@@ -52,14 +55,14 @@
 				</StackPanel>
 			</TabItem>
 		</TabControl>
-		
+
 		<StackPanel Grid.Column="1">
 			<Label Content="Längengrad:" Target="{Binding ElementName=longText}"></Label>
 			<TextBox x:Name="longText" Margin="5,0" Style="{StaticResource TextBoxInError}" GotFocus="TextBox_GotFocus">
 				<TextBox.Text>
 					<Binding Path="Longitude" Source="{StaticResource Ods}" UpdateSourceTrigger="LostFocus" Converter="{StaticResource Convert}">
 						<Binding.ValidationRules>
-							 <c:LongitudeRule />
+							<c:LongitudeRule />
 						</Binding.ValidationRules>
 					</Binding>
 				</TextBox.Text>
@@ -99,6 +102,12 @@
 			<TextBox x:Name="elevationText" IsReadOnly="True" Margin="5,0" Focusable="False"/>
 			<Label Content="Deklinationswinkel:"/>
 			<TextBox x:Name="declinationText" IsReadOnly="True" Margin="5,0" Focusable="False"/>
+			<ComboBox x:Name="currentCamera" Margin="5,5,5,0" SelectedIndex="{Binding SelectedCamera,RelativeSource={RelativeSource FindAncestor,AncestorType=Window}}" SelectionChanged="currentCamera_SelectionChanged">
+				<ComboBox.Items>
+					<Label Content="Satellitenkamera"/>
+					<Label Content="Antennenkamera"/>
+				</ComboBox.Items>
+			</ComboBox>
 		</StackPanel>
 	</Grid>
 </Window>

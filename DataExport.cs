@@ -97,9 +97,8 @@ Azimutwinkel;Elevationswinkel;Deklinationswinkel
 
 		internal static void ExportPNG(Window1 window, string filepath)
 		{
-			RenderTargetBitmap targetBitmap = new RenderTargetBitmap((int)window.MainViewport.ActualWidth, (int)window.MainViewport.ActualHeight, 96, 96, PixelFormats.Pbgra32);
-			targetBitmap.Render(window.MainViewport);
-
+			RenderTargetBitmap targetBitmap = new RenderTargetBitmap((int)window.Panel3D.ActualWidth, (int)window.Panel3D.ActualHeight, 96, 96, PixelFormats.Pbgra32);
+			targetBitmap.Render(window.Panel3D);
 			using (Stream s = File.Create(filepath))
 			{
 				(new PngBitmapEncoder()

@@ -1,0 +1,17 @@
+C:\Users\kuyateh\Source\Repos\PhysikLaborSatellite\bin\Release\PhysikLaborSatellit.exe.config
+C:\Users\kuyateh\Source\Repos\PhysikLaborSatellite\bin\Release\PhysikLaborSatellit.exe
+C:\Users\kuyateh\Source\Repos\PhysikLaborSatellite\bin\Release\Newtonsoft.Json.dll
+C:\Users\kuyateh\Source\Repos\PhysikLaborSatellite\bin\Release\Newtonsoft.Json.xml
+C:\Users\kuyateh\Source\Repos\PhysikLaborSatellite\obj\Release\Window1.g.cs
+C:\Users\kuyateh\Source\Repos\PhysikLaborSatellite\obj\Release\App.g.cs
+C:\Users\kuyateh\Source\Repos\PhysikLaborSatellite\obj\Release\GeneratedInternalTypeHelper.g.cs
+C:\Users\kuyateh\Source\Repos\PhysikLaborSatellite\obj\Release\PhysikLaborSatellit_MarkupCompile.cache
+C:\Users\kuyateh\Source\Repos\PhysikLaborSatellite\obj\Release\PhysikLaborSatellit_MarkupCompile.lref
+C:\Users\kuyateh\Source\Repos\PhysikLaborSatellite\obj\Release\Window1.baml
+C:\Users\kuyateh\Source\Repos\PhysikLaborSatellite\obj\Release\PhysikLaborSatellit.g.resources
+C:\Users\kuyateh\Source\Repos\PhysikLaborSatellite\obj\Release\PhysikLaborSatellit.Properties.Resources.resources
+C:\Users\kuyateh\Source\Repos\PhysikLaborSatellite\obj\Release\PhysikLaborSatellit.csproj.GenerateResource.cache
+C:\Users\kuyateh\Source\Repos\PhysikLaborSatellite\obj\Release\PhysikLaborSatellit.csproj.CoreCompileInputs.cache
+C:\Users\kuyateh\Source\Repos\PhysikLaborSatellite\obj\Release\PhysikLaborSatellit.csproj.CopyComplete
+C:\Users\kuyateh\Source\Repos\PhysikLaborSatellite\obj\Release\PhysikLaborSatellit.exe
+C:\Users\kuyateh\Source\Repos\PhysikLaborSatellite\obj\Release\PhysikLaborSatellit.csprojResolveAssemblyReference.cache

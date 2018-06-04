@@ -29,15 +29,23 @@ namespace PhysikLaborSatellit
 		/// <returns>Azimutwinkel</returns>
 		internal static double GetAzimutAngle(double longitude, double latitude, double longitudeSat)
 		{
-			if (latitude == 0)
-				return ((longitudeSat < 0) ? 90 : 270);
-			else if (latitude == 180)
-				return 90;
+			switch (latitude)
+			{
+				case 0:
+					return ((longitudeSat - longitude < 0) ? 90 : 270);
+				case 180:
+					return -1;
+				case -180:
+					return -1;
+			}
 			double lambda = DegToRad(longitudeSat - longitude);
 			double beta = DegToRad(latitude);
 			double psi = Math.Atan(Math.Tan(lambda) / Math.Sin(beta)) + ((latitude > 0) ? Math.PI : 0);
 			if (psi < 0)
+			{
 				psi += 2 * Math.PI;
+			}
+
 			return RadToDeg(psi);
 		}
 
@@ -51,7 +59,9 @@ namespace PhysikLaborSatellit
 		internal static double GetElevationAngle(double longitude, double latitude, double longitudeSat)
 		{
 			if (latitude == 0)
-				return 90;
+			{
+				return 90 - Math.Abs(longitudeSat - longitude);
+			}
 			double lambda = DegToRad(longitudeSat - longitude);
 			double beta = DegToRad(latitude);
 			double alpha = Math.Atan((Math.Cos(lambda) * Math.Cos(beta) - k)
@@ -69,7 +79,7 @@ namespace PhysikLaborSatellit
 		{
 			if (beta == 0)
 			{
-				return 90;
+				return -1;
 			}
 			double test = Math.Cos(DegToRad(psi)) / Math.Tan(DegToRad(beta));
 			double ergebnis = Math.Atan(-test - k * Math.Sqrt(1 + Math.Pow(test, 2)));
@@ -78,6 +88,11 @@ namespace PhysikLaborSatellit
 
 		internal static double GetDeclinationAngle(double longitude, double latitude, double longitudeSat)
 		{
+			if (latitude == 0)
+			{
+				return 0;
+			}
+
 			double beta = DegToRad(latitude);
 			double lambda = DegToRad(longitudeSat - longitude);
 
@@ -89,7 +104,10 @@ namespace PhysikLaborSatellit
 		internal static double GetDeclinationAngle(double psi, double beta)
 		{
 			if (beta == 0)
+			{
 				return 0;
+			}
+
 			beta = DegToRad(beta);
 			psi = DegToRad(psi);
 			double lambda = Math.Atan(Math.Tan(psi) * Math.Sin(beta));

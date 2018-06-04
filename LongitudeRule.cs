@@ -74,7 +74,10 @@ namespace PhysikLaborSatellit
 
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (!(value is double)) return null;
+			if (!(value is double))
+			{
+				return null;
+			}
 
 			string stringValue = lastConvertBackString ?? value.ToString();
 			lastConvertBackString = null;
@@ -84,7 +87,10 @@ namespace PhysikLaborSatellit
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (!(value is string)) return null;
+			if (!(value is string))
+			{
+				return null;
+			}
 
 			if (double.TryParse((string)value, out double result))
 			{

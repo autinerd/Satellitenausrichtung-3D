@@ -7,12 +7,12 @@ using System.Windows;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("howto_3D_smooth_sphere")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("Satellitenantennenausrichtungsrechner")]
+[assembly: AssemblyDescription("Berechnet die Ausrichtung einer Satellitenantenne.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("howto_3D_smooth_sphere")]
-[assembly: AssemblyCopyright("Copyright ©  2015")]
+[assembly: AssemblyCompany("Marcel Nowak und Sidney Kuyateh")]
+[assembly: AssemblyProduct("Satellitenantennenausrichtungsrechner")]
+[assembly: AssemblyCopyright("Copyright ©  2018 Marcel Nowak und Sidney Kuyateh")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
