@@ -6,10 +6,8 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 using Microsoft.Win32;
 
@@ -127,7 +125,6 @@ namespace PhysikLaborSatellit
 			SetSun(longitude, latitude);
 
 			// Make earth
-
 			MainModel3Dgroup.Children.Add(new GeometryModel3D(AddSmoothSphere(new Point3D(0, 0, 0), r_e, 360, 180), new DiffuseMaterial(Brushes.Aqua)));
 
 			// Make satellite cylinder
@@ -319,8 +316,8 @@ namespace PhysikLaborSatellit
 		{
 			// Calculate the camera's position in Cartesian coordinates.
 			Vector3D v = SphericalCoordinatesToCartesic(r_e, -SatelliteAntennaCalculator.DegToRad(longitude), SatelliteAntennaCalculator.DegToRad(latitude)) * 1.005;
-			TheCamera.Position = new Point3D(v.X, v.Y, v.Z);
 
+			TheCamera.Position = new Point3D(v.X, v.Y, v.Z);
 			// Look toward the satellite
 			Vector3D sat_vector = SphericalCoordinatesToCartesic(r_e / radius_earth, -SatelliteAntennaCalculator.DegToRad(longitudeSat), 0);
 
@@ -331,8 +328,6 @@ namespace PhysikLaborSatellit
 		}
 
 		private void ChangeCamera2View(Vector3D v) => TheCamera.LookDirection += v;
-
-		#region add shapes
 
 		// Add a cylinder with smooth sides.
 		private MeshGeometry3D AddSmoothCylinder(Point3D end_point, Vector3D axis, double radius, int num_sides)
@@ -348,18 +343,14 @@ namespace PhysikLaborSatellit
 			{
 				v1 = new Vector3D(-axis.Y - axis.Z, axis.X, axis.X);
 			}
-
 			Vector3D v2 = Vector3D.CrossProduct(v1, axis);
-
 			// Make the vectors have length radius.
 			v1 *= (radius / v1.Length);
 			v2 *= (radius / v2.Length);
-
 			// Make the top end cap.
 			// Make the end point.
 			int pt0 = mesh.Positions.Count; // Index of end_point.
 			mesh.Positions.Add(end_point);
-
 			// Make the top points.
 			double theta = 0;
 			double dtheta = 2 * Math.PI / num_sides;
@@ -370,7 +361,6 @@ namespace PhysikLaborSatellit
 					Math.Sin(theta) * v2);
 				theta += dtheta;
 			}
-
 			// Make the top triangles.
 			int pt1 = mesh.Positions.Count - 1; // Index of last point.
 			int pt2 = pt0 + 1;                  // Index of first point in this cap.
@@ -381,13 +371,11 @@ namespace PhysikLaborSatellit
 				mesh.TriangleIndices.Add(pt2);
 				pt1 = pt2++;
 			}
-
 			// Make the bottom end cap.
 			// Make the end point.
 			pt0 = mesh.Positions.Count; // Index of end_point2.
 			Point3D end_point2 = end_point + axis;
 			mesh.Positions.Add(end_point2);
-
 			// Make the bottom points.
 			theta = 0;
 			for (int i = 0; i < num_sides; i++)
@@ -397,7 +385,6 @@ namespace PhysikLaborSatellit
 					Math.Sin(theta) * v2);
 				theta += dtheta;
 			}
-
 			// Make the bottom triangles.
 			theta = 0;
 			pt1 = mesh.Positions.Count - 1; // Index of last point.
@@ -409,7 +396,6 @@ namespace PhysikLaborSatellit
 				mesh.TriangleIndices.Add(pt1);
 				pt1 = pt2++;
 			}
-
 			// Make the sides.
 			// Add the points to the mesh.
 			int first_side_point = mesh.Positions.Count;
@@ -424,7 +410,6 @@ namespace PhysikLaborSatellit
 				mesh.Positions.Add(p2);
 				theta += dtheta;
 			}
-
 			// Make the side triangles.
 			pt1 = mesh.Positions.Count - 2;
 			pt2 = pt1 + 1;
@@ -501,7 +486,6 @@ namespace PhysikLaborSatellit
 					pt00 = pt01;
 					pt10 = pt11;
 				}
-
 				// Move to the next value of phi.
 				phi0 = phi1;
 				y0 = y1;
@@ -509,7 +493,6 @@ namespace PhysikLaborSatellit
 			}
 			return mesh;
 		}
-		#endregion
 
 		private static Vector3D SphericalCoordinatesToCartesic(double radius, double phi, double lambda) => new Vector3D(radius * Math.Cos(lambda) * Math.Cos(phi), radius * Math.Cos(lambda) * Math.Sin(phi), radius * Math.Sin(lambda));
 
@@ -556,9 +539,12 @@ namespace PhysikLaborSatellit
 					PositionCamera();
 					break;
 			}
-
-			FillElevationCurveRows(latitude, longitude, longitudeSat);
-			angleGrid.ItemsSource = rows;
+			if (latitude != 0)
+			{
+				FillElevationCurveRows(latitude, longitude, longitudeSat);
+				angleGrid.ItemsSource = rows;
+				ElevationCurveTab.IsEnabled = true;
+			}
 
 			ExportTab.IsEnabled = true;
 		}
@@ -580,11 +566,8 @@ namespace PhysikLaborSatellit
 				{
 					CameraR += CameraDR;
 				}
-
 				PositionCamera();
 			}
-
-
 		}
 
 		void FillElevationCurveRows(double latitude, double longitude, double longitudeSat)
@@ -607,7 +590,11 @@ namespace PhysikLaborSatellit
 			}
 		}
 
-		// Keybord focus selects all text of textbox
+		/// <summary>
+		/// Keybord focus selects all text of textbox
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
 		private void TextBox_GotFocus(object sender, RoutedEventArgs e) => ((TextBox)sender).SelectAll();
 
 		/// <summary>
@@ -622,7 +609,7 @@ namespace PhysikLaborSatellit
 				AddExtension = true,
 				ValidateNames = true,
 				InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-				Filter = "Text-Datei|*.txt|Komma-separierte Werte|*.csv|XML-Datei|*.xml|JSON-Datei|*.json|PNG-Bild|*.png",
+				Filter = "Text-Datei|*.txt|Komma-separierte Werte|*.csv|XML-Datei|*.xml|JSON-Datei|*.json",
 				Title = "Datei exportieren"
 			};
 			if (sfd.ShowDialog() == true)
@@ -656,19 +643,6 @@ namespace PhysikLaborSatellit
 				{
 					DataExport.ExportAsJSON(this, fileNameBox.Text);
 				}
-			}
-			MessageBox.Show("Erfolgreich exportiert!", "Export erfolgreich", MessageBoxButton.OK, MessageBoxImage.Information, MessageBoxResult.OK, MessageBoxOptions.None);
-		}
-		/// <summary>
-		/// Click the "Save PNG" button
-		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="e"></param>
-		private void Button_Click_3(object sender, RoutedEventArgs e)
-		{
-			if (fileNameBox.Text.Length > 0)
-			{
-				DataExport.ExportPNG(this, fileNameBox.Text);
 			}
 			MessageBox.Show("Erfolgreich exportiert!", "Export erfolgreich", MessageBoxButton.OK, MessageBoxImage.Information, MessageBoxResult.OK, MessageBoxOptions.None);
 		}

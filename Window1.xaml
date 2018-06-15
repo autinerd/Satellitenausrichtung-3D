@@ -32,7 +32,7 @@
 				</DockPanel>
 
 			</TabItem>
-			<TabItem Header="Elevationskurve">
+			<TabItem x:Name="ElevationCurveTab" Header="Elevationskurve" IsEnabled="False">
 				<DataGrid x:Name="angleGrid" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" CanUserSortColumns="False" CanUserReorderColumns="False">
 					<DataGrid.Columns>
 						<DataGridTextColumn Binding="{Binding Azimut}" Header="Azimutwinkel"/>
@@ -51,7 +51,6 @@
 					<TextBox x:Name="fileNameBox" IsEnabled="False" IsReadOnly="True" Margin="5,5,5,0"/>
 					<Button Content="Durchsuchen..." Width="100" HorizontalAlignment="Left" Margin="5,5,0,0" Click="Button_Click_1"/>
 					<Button Content="Export" Width="100" HorizontalAlignment="Left" Margin="5,15,0,0" FontWeight="Bold" Click="Button_Click_2"/>
-					<Button Content="Bild von 3D-Ansicht speichern" Margin="5,15,0,0" Width="180" HorizontalAlignment="Left" Click="Button_Click_3"/>
 				</StackPanel>
 			</TabItem>
 		</TabControl>
