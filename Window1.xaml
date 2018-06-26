@@ -25,7 +25,7 @@
 			<ColumnDefinition Width="5*"/>
 			<ColumnDefinition/>
 		</Grid.ColumnDefinitions>
-		<TabControl>
+		<TabControl x:Name="tabControl">
 			<TabItem Header="3D-Ansicht" IsSelected="True">
 				<DockPanel x:Name="Panel3D">
 					<Viewport3D Name="MainViewport" Focusable="True"/>

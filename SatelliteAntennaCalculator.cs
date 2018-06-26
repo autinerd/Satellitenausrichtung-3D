@@ -58,10 +58,6 @@ namespace PhysikLaborSatellit
 		/// <returns>Elevationswinkel</returns>
 		internal static double GetElevationAngle(double longitude, double latitude, double longitudeSat)
 		{
-			if (latitude == 0)
-			{
-				return 90 - Math.Abs(longitudeSat - longitude);
-			}
 			double lambda = DegToRad(longitudeSat - longitude);
 			double beta = DegToRad(latitude);
 			double alpha = Math.Atan((Math.Cos(lambda) * Math.Cos(beta) - k)

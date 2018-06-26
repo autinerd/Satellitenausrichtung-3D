@@ -545,6 +545,12 @@ namespace PhysikLaborSatellit
 				angleGrid.ItemsSource = rows;
 				ElevationCurveTab.IsEnabled = true;
 			}
+			else
+			{
+				rows.Clear();
+				ElevationCurveTab.IsEnabled = false;
+				tabControl.SelectedIndex = 0;
+			}
 
 			ExportTab.IsEnabled = true;
 		}
